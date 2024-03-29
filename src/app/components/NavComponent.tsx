@@ -216,7 +216,7 @@ const NavComponent = () => {
           </div>
           <div className='col-span-9'>
             <p className='fifty fwnav'>
-              What's the Weather?
+              What{"'"}s the Weather?
             </p>
           </div>
         </div>

@@ -4,6 +4,11 @@ import React, { useEffect, useState } from 'react'
 import logo from '../assets/WeatherLogo.png'
 import star from '../assets/Wstart.png'
 import sun from '../assets/WhiteSun.png';
+import cloud from '../assets/Cloudy.png'
+import hazy from '../assets/Hazy.png'
+import rainy from '../assets/Rainy.png'
+import snow from '../assets/Snowy.png'
+import storm from '../assets/Stormy.png'
 const apikey = process.env.NEXT_PUBLIC_API_KEY;
 
 const NavComponent = () => {
@@ -16,15 +21,8 @@ const NavComponent = () => {
   const [forecastData, setForecastData] = useState<any[]>([]);
   const [divType, setDivType] = useState<string>('off');
   const [search, setSearch] = useState('')
-
-  useEffect(() => {
-    const fetchData = () => {
-      navigator.geolocation.getCurrentPosition(success, errorFunc);
-    };
-
-    fetchData();
-  }, []);
-
+  const [weatherIconID, setWeatherIconID] = useState<any>('')
+  const [weatherIcon, setWeatherIcon] = useState('')
 
   const fiveDayApi = async (latitude: number, longitude: number) => {
     //The days are [0], [2], [9], [17], [25]
@@ -71,12 +69,12 @@ const NavComponent = () => {
     const fetchData = () => {
       navigator.geolocation.getCurrentPosition(success, errorFunc);
     };
-
-    fetchData();
     if (searchLat && searchLon) {
       searchApi2()
       searchApi3()
       searchApi4()
+    } else {
+      fetchData();
     }
   }, [searchLat, searchLon]);
 
@@ -100,6 +98,7 @@ const NavComponent = () => {
     setLocName(data.name)
     setCurrentC(`${Math.floor(data.main.temp)}°`)
     setCurrentF(`${Math.floor(data2.main.temp)}°`)
+    setWeatherIconID(data.weather[0].id)
   };
 
   const searchApi = async () => {
@@ -182,7 +181,23 @@ const NavComponent = () => {
     }
   }
 
-
+  const getWeatherImage = (weatherID: number): string => {
+    if (weatherID >= 801 && weatherID <= 804) {
+      return cloud.src;
+    } else if (weatherID === 800) {
+      return sun.src;
+    } else if (weatherID >= 500 && weatherID <= 504 || weatherID === 511 || (weatherID >= 520 && weatherID <= 531)) {
+      return rainy.src;
+    } else if (weatherID >= 600 && weatherID <= 622) {
+      return snow.src;
+    } else if (weatherID >= 200 && weatherID <= 232) {
+      return storm.src;
+    } else if (weatherID >= 300 && weatherID <= 321) {
+      return hazy.src;
+    } else {
+      return sun.src;
+    }
+  };
 
   //   if (CWeatherID >= 801 && CWeatherID <= 804) {
   //     CImg.src = "./assets/Cloudy.png"
@@ -215,7 +230,7 @@ const NavComponent = () => {
             <img src={logo.src} alt='Logo' width='77px' height='75px'></img>
           </div>
           <div className='col-span-9'>
-            <p className='fifty fwnav'>
+            <p className='fifty fwnav lg:text-start text-end'>
               What{"'"}s the Weather?
             </p>
           </div>
@@ -228,7 +243,7 @@ const NavComponent = () => {
               <div className='lg:col-span-4'></div>
 
               <div className='lg:col-span-3 col-span-1'>
-                <p onClick={handleOpenDiv} className='tf lg:text-end text-start'>
+                <p onClick={handleOpenDiv} className='tf lg:text-end text-center'>
                   Favorites
                 </p>
               </div>
@@ -251,32 +266,32 @@ const NavComponent = () => {
         {/* Favorite Div */}
         <hr className={`col-span-2`} />
         <div className='lg:col-span-1 col-span-2'></div>
-        <div className={`col-span-1 ${divType === 'off' ? 'hidden' : ''}`}>
-          {getlocalStorage().map((favorite, e) => (
-            <div className='grid grid-cols-12 favClass'>
-              <div className='col-span-10'>
-                <p key={e} className="text-end" onClick={() => handleFavoriteClick(favorite)}>
-                  {(favorite)}
+        <div className={`lg:col-span-1 col-span-2 ${divType === 'off' ? 'hidden' : ''}`}>
+          {getlocalStorage().map((favorite, index) => (
+            <div className='grid grid-cols-12 favClass' key={index}>
+              <div className='lg:col-span-10 col-span-6'>
+                <p className="text-end" onClick={() => handleFavoriteClick(favorite)}>
+                  {favorite}
                 </p>
               </div>
-              <div className='col-span-2'>
+              <div className='lg:col-span-2 col-span-6'>
                 <p className="px-10" onClick={() => removeFromLocalStorage(favorite)}>
                   X
                 </p>
-              </div>
-            </ div>
+              </ div>
+            </div>
           ))}
         </div>
       </div>
 
       <div className='px-5'>
         <div className='grid grid-cols-12 namebg'>
-          <div className='col-span-11'>
-            <p className='locnametxt py-4'>
+          <div className='lg:col-span-11 col-span-12'>
+            <p className='locnametxt py-4 text-center lg:text-start'>
               {locName}
             </p>
           </div>
-          <div onClick={() => saveToLocalStorage(locName)} className='col-span-1 py-8 pe-5 lg:flex lg:justify-end'>
+          <div onClick={() => saveToLocalStorage(locName)} className='lg:col-span-1 col-span-12 py-8 pe-5 flex lg:justify-end justify-center'>
             <img src={star.src} alt='Star' width='60px' height='58px' />
           </div>
         </div>
@@ -285,24 +300,25 @@ const NavComponent = () => {
           <span>Current weather</span> | <span>time and date goes here</span>
         </p>
 
-        <div className='grid grid-cols-12 py-2'>
-          <div className='col-span-1'>
-            <img src={sun.src} alt='Sun' width='100%' />
+        <div className='grid grid-cols-12 pb-2'>
+          <div className='lg:col-span-1 col-span-12 py-7 lg:pb-0'>
+            <img src={getWeatherImage(weatherIconID)} alt='Sun' width='100%' />
           </div>
-          <div className='bigtxt col-span-11 ps-4'>
-            {currentF}F | {currentC}C
+          <div className='bigtxt lg:col-span-11 col-span-12 lg:ps-4 lg:text-start text-center'>
+          <span className='lg:block hidden pt-7'>{currentF}F | {currentC}C</span>
+          <span className='lg:hidden block'>{currentF}F <hr /> {currentC}C</span>
           </div>
         </div>
       </div>
 
-      <div className='px-5 pb-20'>
-        <p className='thirtf pb-3'>
+      <div className='px-5 pb-20 lg:pt-0 pt-10'>
+        <p className='thirtf pb-3 lg:text-start text-center'>
           Five Day Forecast
         </p>
         {forecastData && forecastData.length > 0 ? (
           <div className='grid grid-cols-5 twenty text-center gap-8'>
             {fiveDaysOfWeek.map((dayOfWeek: string, index: number) => (
-              <div className='col-span-1 fivebg' key={index}>
+              <div className='lg:col-span-1 col-span-5 fivebg' key={index}>
                 <p className='py-3 thirtf black'>{GetWeekDays()[index]}</p>
                 <div className='flex justify-center pb-5'>
                   <img src={sun.src} width='45%' />

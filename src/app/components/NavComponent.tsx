@@ -10,7 +10,7 @@ import rainy from '../assets/Rainy.png'
 import snow from '../assets/Snowy.png'
 import storm from '../assets/Stormy.png'
 const apikey = process.env.NEXT_PUBLIC_API_KEY;
-
+import { getlocalStorage, saveToLocalStorage, removeFromLocalStorage } from '@/utils/utils';
 const NavComponent = () => {
 
   const [searchLat, setSearchLat] = useState('')
@@ -23,7 +23,7 @@ const NavComponent = () => {
   const [search, setSearch] = useState('')
   const [weatherIconID, setWeatherIconID] = useState<any>('')
   const [weatherIcon, setWeatherIcon] = useState('')
-
+  const [localTest, setLocalTest] = useState('')
   const fiveDayApi = async (latitude: number, longitude: number) => {
     //The days are [0], [2], [9], [17], [25]
     const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apikey}&units=imperial`);
@@ -150,28 +150,7 @@ const NavComponent = () => {
     }
   };
 
-  const saveToLocalStorage = (mon: string) => {
-    let favorites = getlocalStorage();
-    if (!favorites.includes(mon)) {
-      favorites.push(mon);
-    }
-    localStorage.setItem('Favorites', JSON.stringify(favorites));
-  };
 
-  const getlocalStorage = (): string[] => {
-    let localStorageData = localStorage.getItem('Favorites');
-
-    if (localStorageData === null) {
-      return [];
-    }
-    return JSON.parse(localStorageData);
-  };
-
-  const removeFromLocalStorage = (weatherName: string) => {
-    let favorites = getlocalStorage();
-    favorites = favorites.filter((favorite) => favorite !== weatherName);
-    localStorage.setItem('Favorites', JSON.stringify(favorites));
-  };
 
   const handleOpenDiv = () => {
     if (divType === 'off') {
@@ -198,6 +177,8 @@ const NavComponent = () => {
       return sun.src;
     }
   };
+
+  let test = getlocalStorage() ? getlocalStorage() : null 
 
   //   if (CWeatherID >= 801 && CWeatherID <= 804) {
   //     CImg.src = "./assets/Cloudy.png"
@@ -267,7 +248,7 @@ const NavComponent = () => {
         <hr className={`col-span-2`} />
         <div className='lg:col-span-1 col-span-2'></div>
         <div className={`lg:col-span-1 col-span-2 ${divType === 'off' ? 'hidden' : ''}`}>
-          {getlocalStorage().map((favorite, index) => (
+          {test?.map((favorite, index) => (
             <div className='grid grid-cols-12 favClass' key={index}>
               <div className='lg:col-span-10 col-span-6'>
                 <p className="text-end" onClick={() => handleFavoriteClick(favorite)}>

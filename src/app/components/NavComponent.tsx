@@ -22,8 +22,8 @@ const NavComponent = () => {
   const [divType, setDivType] = useState<string>('off');
   const [search, setSearch] = useState('')
   const [weatherIconID, setWeatherIconID] = useState<any>('')
-  const [weatherIcon, setWeatherIcon] = useState('')
-  const [localTest, setLocalTest] = useState('')
+  const [weatherName, setWeatherName] = useState('')
+
   const fiveDayApi = async (latitude: number, longitude: number) => {
     //The days are [0], [2], [9], [17], [25]
     const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apikey}&units=imperial`);
@@ -63,8 +63,6 @@ const NavComponent = () => {
     }
   };
 
-  const fiveDaysOfWeek = GetWeekDays().slice(0, 5);
-
   useEffect(() => {
     const fetchData = () => {
       navigator.geolocation.getCurrentPosition(success, errorFunc);
@@ -99,6 +97,7 @@ const NavComponent = () => {
     setCurrentC(`${Math.floor(data.main.temp)}°`)
     setCurrentF(`${Math.floor(data2.main.temp)}°`)
     setWeatherIconID(data.weather[0].id)
+    setWeatherName(data.weather[0].main)
   };
 
   const searchApi = async () => {
@@ -112,7 +111,7 @@ const NavComponent = () => {
   const handleFavoriteClick = async (weatherName: string) => {
     const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${weatherName}&limit=5&appid=${apikey}`);
     const data = await response.json();
-    console.log(data[0]?.lat);
+    console.log(weatherName);
     const favLat = data[0].lat;
     const favLon = data[0].lon;
     setSearchLat(favLat)
@@ -126,6 +125,8 @@ const NavComponent = () => {
     const convertdata = data.main.temp
     setCurrentC(`${Math.floor(convertdata)}°`)
     console.log(data)
+    setWeatherIconID(data.weather[0].id)
+    setWeatherName(data.weather[0].main)
   };
 
   const searchApi3 = async () => {
@@ -133,8 +134,9 @@ const NavComponent = () => {
     const data = await response.json();
     const convertdata = data.main.temp
     setCurrentF(`${Math.floor(convertdata)}°`)
-
     console.log(data)
+    setWeatherIconID(data.weather[0].id)
+    setWeatherName(data.weather[0].main)
   };
 
   const searchApi4 = async () => {
@@ -150,8 +152,6 @@ const NavComponent = () => {
     }
   };
 
-
-
   const handleOpenDiv = () => {
     if (divType === 'off') {
       setDivType('on');
@@ -160,7 +160,7 @@ const NavComponent = () => {
     }
   }
 
-  const getWeatherImage = (weatherID: number): string => {
+  const getWeatherIcon = (weatherID: number) => {
     if (weatherID >= 801 && weatherID <= 804) {
       return cloud.src;
     } else if (weatherID === 800) {
@@ -174,44 +174,21 @@ const NavComponent = () => {
     } else if (weatherID >= 300 && weatherID <= 321) {
       return hazy.src;
     } else {
-      return sun.src;
+      return sun.src; // Default to a sun icon if no matching conditions found
     }
   };
-
-  let test = getlocalStorage() ? getlocalStorage() : null 
-
-  //   if (CWeatherID >= 801 && CWeatherID <= 804) {
-  //     CImg.src = "./assets/Cloudy.png"
-  //     Day1Img.src = "./assets/Cloudy.png"
-  // } else if (CWeatherID === 800) {
-  //     CImg.src = "./assets/WhiteSun.png";
-  //     Day1Img.src = "./assets/WhiteSun.png";
-  // } else if (CWeatherID >= 500 && CWeatherID <= 504 || CWeatherID === 511 || (CWeatherID >= 520 && CWeatherID <= 531)) {
-  //     CImg.src = "./assets/Rainy.png";
-  //     Day1Img.src = "./assets/Rainy.png";
-  // } else if (CWeatherID >= 600 && CWeatherID <= 622) {
-  //     CImg.src = "./assets/Snowy.png";
-  //     Day1Img.src = "./assets/Snowy.png";
-  // } else if (CWeatherID >= 200 && CWeatherID <= 232) {
-  //     CImg.src = "./assets/Stormy.png";
-  //     Day1Img.src = "./assets/Stormy.png";
-  // } else if (CWeatherID >= 300 && CWeatherID <= 321) {
-  //     CImg.src = "./assets/Hazy.png";
-  //     Day1Img.src = "./assets/Hazy.png";
-  // } else {
-  //     CImg.src = "./assets/WhiteSun.png";
-  //     Day1Img.src = "./assets/WhiteSun.png";
-  // }
 
   return (
     <>
       <div className='bgNav px-5 py-2 grid grid-cols-2'>
         <div className='lg:col-span-1 col-span-2 grid grid-cols-10'>
-          <div className='col-span-1'>
+          <div className='lg:hidden block col-span-3'></div>
+          <div className='lg:col-span-1 col-span-4 flex justify-center'>
             <img src={logo.src} alt='Logo' width='77px' height='75px'></img>
           </div>
-          <div className='col-span-9'>
-            <p className='fifty fwnav lg:text-start text-end'>
+          <div className='lg:hidden block col-span-3'></div>
+          <div className='lg:col-span-9 col-span-10'>
+            <p className='fifty fwnav lg:text-start text-center'>
               What{"'"}s the Weather?
             </p>
           </div>
@@ -236,27 +213,28 @@ const NavComponent = () => {
           <div className='col-span-1 mb-5 pt-1 ps-6 twenty'>
             <input
               type="text"
-              className='border-0 rounded-3xl'
+              className='border-0 rounded-3xl inputClass ps-12'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Enter city name"
-            />
+              />
+
           </div>
         </div>
         {/* Favorite Div */}
         <hr className={`col-span-2`} />
         <div className='lg:col-span-1 col-span-2'></div>
         <div className={`lg:col-span-1 col-span-2 ${divType === 'off' ? 'hidden' : ''}`}>
-          {test?.map((favorite, index) => (
-            <div className='grid grid-cols-12 favClass' key={index}>
+          {getlocalStorage()?.map((favorite, index) => (
+            <div className='grid grid-cols-12 favClass py-2' key={index}>
               <div className='lg:col-span-10 col-span-6'>
-                <p className="text-end" onClick={() => handleFavoriteClick(favorite)}>
+                <p className="text-end fwnav" onClick={() => handleFavoriteClick(favorite)}>
                   {favorite}
                 </p>
               </div>
-              <div className='lg:col-span-2 col-span-6'>
-                <p className="px-10" onClick={() => removeFromLocalStorage(favorite)}>
+              <div className='lg:col-span-2 col-span-6 xClass'>
+                <p className="text-center" onClick={() => removeFromLocalStorage(favorite)}>
                   X
                 </p>
               </ div>
@@ -277,36 +255,39 @@ const NavComponent = () => {
           </div>
         </div>
 
-        <p className='thirtf'>
-          <span>Current weather</span> | <span>time and date goes here</span>
+        <p className='thirtf lg:block hidden'>
+          <span className='fwnav'>Current weather</span> | <span>{weatherName}</span>
+        </p>
+        <p className='thirtf lg:hidden block text-center'>
+          <span className='fwnav'>Current weather</span> <hr /> <span>{weatherName}</span>
         </p>
 
         <div className='grid grid-cols-12 pb-2'>
           <div className='lg:col-span-1 col-span-12 py-7 lg:pb-0'>
-            <img src={getWeatherImage(weatherIconID)} alt='Sun' width='100%' />
+            <img src={getWeatherIcon(weatherIconID)} alt='Sun' width='100%' />
           </div>
           <div className='bigtxt lg:col-span-11 col-span-12 lg:ps-4 lg:text-start text-center'>
-          <span className='lg:block hidden pt-7'>{currentF}F | {currentC}C</span>
-          <span className='lg:hidden block'>{currentF}F <hr /> {currentC}C</span>
+            <span className='lg:block hidden pt-7'>{currentF}F | {currentC}C</span>
+            <span className='lg:hidden block'>{currentF}F <hr /> {currentC}C</span>
           </div>
         </div>
       </div>
 
       <div className='px-5 pb-20 lg:pt-0 pt-10'>
-        <p className='thirtf pb-3 lg:text-start text-center'>
+        <p className='thirtf pb-3 lg:text-start text-center fwnav'>
           Five Day Forecast
         </p>
         {forecastData && forecastData.length > 0 ? (
           <div className='grid grid-cols-5 twenty text-center gap-8'>
-            {fiveDaysOfWeek.map((dayOfWeek: string, index: number) => (
+            {forecastData.slice(0, 5).map((day, index) => (
               <div className='lg:col-span-1 col-span-5 fivebg' key={index}>
                 <p className='py-3 thirtf black'>{GetWeekDays()[index]}</p>
                 <div className='flex justify-center pb-5'>
-                  <img src={sun.src} width='45%' />
+                  <img src={getWeatherIcon(day.weather[0].id)} width='45%' alt='Weather Icon' />
                 </div>
-                <p className='twenty pb-2'>{forecastData[index]?.weather[0]?.main}</p>
-                <p className='fifty black'>{Math.floor(forecastData[index]?.main.temp_max)}° F</p>
-                <p className='fifty gray'>{Math.floor(forecastData[index]?.main.temp_min)}° F</p>
+                <p className='twenty pb-2'>{day.weather[0]?.main}</p>
+                <p className='fifty black'>{Math.floor(day.main.temp_max)}° F</p>
+                <p className='fifty gray'>{Math.floor(day.main.temp_min)}° F</p>
               </div>
             ))}
           </div>

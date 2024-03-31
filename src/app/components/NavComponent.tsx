@@ -9,6 +9,7 @@ import hazy from '../assets/Hazy.png'
 import rainy from '../assets/Rainy.png'
 import snow from '../assets/Snowy.png'
 import storm from '../assets/Stormy.png'
+import filledStar from '../assets/WstartFull.png'
 const apikey = process.env.NEXT_PUBLIC_API_KEY;
 import { getlocalStorage, saveToLocalStorage, removeFromLocalStorage } from '@/utils/utils';
 const NavComponent = () => {
@@ -23,6 +24,11 @@ const NavComponent = () => {
   const [search, setSearch] = useState('')
   const [weatherIconID, setWeatherIconID] = useState<any>('')
   const [weatherName, setWeatherName] = useState('')
+  const [starFilled, setStarFilled] = useState(false);
+
+  const handleStarClick = () => {
+    setStarFilled(!starFilled);
+  };
 
   const fiveDayApi = async (latitude: number, longitude: number) => {
     //The days are [0], [2], [9], [17], [25]
@@ -250,8 +256,8 @@ const NavComponent = () => {
               {locName}
             </p>
           </div>
-          <div onClick={() => saveToLocalStorage(locName)} className='lg:col-span-1 col-span-12 py-8 pe-5 flex lg:justify-end justify-center'>
-            <img src={star.src} alt='Star' width='60px' height='58px' />
+          <div onClick={() => {saveToLocalStorage(locName); handleStarClick()}} className='lg:col-span-1 col-span-12 py-8 pe-5 flex lg:justify-end justify-center'>
+            <img src={starFilled ? filledStar.src : star.src} alt='Star' width='60px' height='58px' />
           </div>
         </div>
 

@@ -11,7 +11,7 @@ import snow from '../assets/Snowy.png'
 import storm from '../assets/Stormy.png'
 import filledStar from '../assets/WstartFull.png'
 const apikey = process.env.NEXT_PUBLIC_API_KEY;
-import { getlocalStorage, saveToLocalStorage, removeFromLocalStorage } from '@/utils/utils';
+// import { getlocalStorage, saveToLocalStorage, removeFromLocalStorage } from '@/utils/utils';
 const NavComponent = () => {
 
   const [searchLat, setSearchLat] = useState('')
@@ -25,7 +25,7 @@ const NavComponent = () => {
   const [weatherIconID, setWeatherIconID] = useState<any>('')
   const [weatherName, setWeatherName] = useState('')
   const [starFilled, setStarFilled] = useState(false);
-
+  const [getLocalStorageDataData, setGetLocalStorage] = useState<string[]>([]);
   const handleStarClick = () => {
     setStarFilled(!starFilled);
   };
@@ -68,6 +68,15 @@ const NavComponent = () => {
         return ["Mon", "Tue", "Wed", "Thu", "Fri"];
     }
   };
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const localStorageData = localStorage.getItem('Favorites');
+      if (localStorageData) {
+        setGetLocalStorage(JSON.parse(localStorageData));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = () => {
@@ -184,6 +193,23 @@ const NavComponent = () => {
     }
   };
 
+
+
+
+ const saveToLocalStorage = (mon: string) => {
+  let favorites = getLocalStorageDataData;
+  if (!favorites?.includes(mon)) {
+    favorites?.push(mon);
+  }
+  localStorage.setItem('Favorites', JSON.stringify(favorites));
+};
+
+ const removeFromLocalStorage = (weatherName: string) => {
+  let favorites: string[] | null | undefined = getLocalStorageDataData;
+  favorites = favorites?.filter((favorite) => favorite !== weatherName);
+  localStorage.setItem('Favorites', JSON.stringify(favorites));
+};
+
   return (
     <>
       <div className='bgNav px-5 py-2 grid grid-cols-2'>
@@ -232,7 +258,7 @@ const NavComponent = () => {
         <hr className={`col-span-2`} />
         <div className='lg:col-span-1 col-span-2'></div>
         <div className={`lg:col-span-1 col-span-2 ${divType === 'off' ? 'hidden' : ''}`}>
-          {getlocalStorage()?.map((favorite, index) => (
+          {getLocalStorageDataData?.map((favorite, index) => (
             <div className='grid grid-cols-12 favClass py-2' key={index}>
               <div className='lg:col-span-10 col-span-6'>
                 <p className="text-end fwnav" onClick={() => handleFavoriteClick(favorite)}>
